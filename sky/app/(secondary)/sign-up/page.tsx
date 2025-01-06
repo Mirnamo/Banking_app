@@ -1,24 +1,11 @@
-import Image from "next/image";
+import AuthForm from '@/components/AuthForm'
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const SignUp = async () => {
   return (
-    <main className="flex min-h-screen w-full justify-between font-inter">
-      {children}
-      <div className="auth-asset">
-        <div>
-          <Image 
-            src="/icons/auth-image.svg"
-            alt="Auth image"
-            width={500}
-            height={500}
-            className="rounded-l-xl object-contain"
-          />
-        </div>
-      </div>
-    </main>
-  );
+    <section className="flex-center size-full max-sm:px-6">
+      <AuthForm type="sign-up" />
+    </section>
+  )
 }
+
+export default SignUp
