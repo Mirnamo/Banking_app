@@ -10,8 +10,6 @@ const getEnvironment = (): "production" | "sandbox" => {
             return "sandbox";
         case "production":
             return "production";
-        default:
-            throw new Error("Invalid DWOLLA_ENV value");
     }
 };
 
