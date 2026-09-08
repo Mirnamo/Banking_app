@@ -1,49 +1,54 @@
-# FinFlow — Banking Operations Dashboard
+# FinFlow Banking Sandbox
 
-A full-stack financial dashboard for connecting accounts, viewing balances and transactions, and initiating transfers through sandbox integrations.
+A polished full-stack banking operations demo built to show product design, API development, persistent state, business-rule validation, and responsive frontend engineering.
 
-> Portfolio project only. This application is not a bank and must not be used with real financial credentials or production funds.
+> **Portfolio safety:** FinFlow uses synthetic people, accounts, transactions, and balances. It never requests real bank credentials, personal identity data, or payment information and does not provide financial services.
 
-## What it demonstrates
+## What works
 
-- Next.js and TypeScript application architecture
-- Authentication and server-side data access with Appwrite
-- Plaid sandbox account linking and transaction retrieval
-- Dwolla sandbox customer and transfer workflows
-- Responsive dashboard UI and reusable components
-- Secure configuration through environment variables
+- Demo authentication with an HTTP-only session cookie
+- Persistent, isolated demo sessions backed by Netlify Blobs
+- Account balances and searchable transaction history
+- Internal and fictional-recipient transfers
+- Server-side amount, account, and overdraft validation
+- Editable monthly budgets and progress tracking
+- Cash-flow analytics and responsive dashboard UI
+- One-click reset to the original synthetic dataset
+- Automated tests for core financial-domain rules
 
-## Security
+## Architecture
 
-Secrets are never committed. Copy `sky/.env.example` to `sky/.env` and insert sandbox-only credentials. If a secret is ever committed, revoke it immediately and scrub it from Git history.
+| Layer | Technology | Responsibility |
+|---|---|---|
+| Client | React, Vite, Recharts | Dashboard, workflows, filtering, visualization |
+| API | Netlify Functions | Authentication, validation, transfers, budgets |
+| Persistence | Netlify Blobs | Per-session sandbox state |
+| Quality | Node test runner | Transfer and budget rule tests |
 
-## Local setup
+## Run locally
 
 ```bash
-git clone https://github.com/Mirnamo/Banking_app.git
-cd Banking_app/sky
+cd finflow
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-## Environment variables
-
-See `sky/.env.example` for the required keys. Use Appwrite, Plaid, and Dwolla sandbox projects for local development.
-
-## Quality checks
+Use `demo@finflow.dev` and `finflow2026` on the login screen.
 
 ```bash
-npm run lint
+npm test
 npm run build
 ```
 
-## Responsible use
+## Repository map
 
-No real customer data belongs in this repository. Screenshots and demos should use synthetic accounts and transactions only.
+- `finflow/` — current portfolio-ready application
+- `sky/` — preserved original integration prototype for historical reference; it is not used by the production build
+
+## Deployment
+
+The root `netlify.toml` configures the Vite build, serverless functions, API routing, and SPA fallback. Connect this repository to Netlify and deploy from the repository root.
 
 ## License
 
-MIT
+This repository is provided as a portfolio demonstration. All brand names, customers, account numbers, and transaction records shown in the app are fictional.
