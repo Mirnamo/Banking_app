@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:pages": "wrangler pages dev dist",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy dist",
+    "deploy": "npm run build",
     "test": "node --test functions/lib/domain.test.mjs"
   },
   "dependencies": {
@@ -19,7 +18,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.7",
-    "wrangler": "^3.68.0"
+    "vite": "^6.0.7"
   }
 }
