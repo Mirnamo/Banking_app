@@ -1,21 +1,15 @@
-# Migration from Netlify to Cloudflare Pages
+# Migration from Netlify to GitHub Pages
 
 ## Overview
-This repository contains two applications that have been migrated from Netlify to Cloudflare Pages:
-- **finflow**: Vite + React app with serverless functions
-- **sky**: Next.js app
+This repository contains two applications that have been migrated from Netlify to GitHub Pages:
+- **finflow**: Vite + React static site
+- **sky**: Next.js static site
 
 ## Setup Instructions
 
 ### Prerequisites
-- Install [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/):
-  ```bash
-  npm install -g wrangler
-  ```
-- Authenticate with Cloudflare:
-  ```bash
-  wrangler login
-  ```
+- GitHub account with push access to this repository
+- Node.js 18+ and npm installed
 
 ### Deploying finflow (Vite + React)
 
@@ -34,21 +28,7 @@ This repository contains two applications that have been migrated from Netlify t
    npm run build
    ```
 
-4. Deploy to Cloudflare Pages:
-   ```bash
-   npm run deploy
-   ```
-
-   Or manually:
-   ```bash
-   wrangler pages deploy dist
-   ```
-
-5. For local development:
-   ```bash
-   npm run dev          # Runs Vite dev server
-   npm run dev:pages    # Runs with Cloudflare Pages emulation
-   ```
+4. The build output in `dist/` is ready for GitHub Pages
 
 ### Deploying sky (Next.js)
 
@@ -67,133 +47,163 @@ This repository contains two applications that have been migrated from Netlify t
    npm run build
    ```
 
-4. Deploy to Cloudflare Pages:
-   ```bash
-   npm run deploy
-   ```
+4. The build output in `out/` is ready for GitHub Pages
 
-   Or manually:
-   ```bash
-   wrangler pages deploy .next/static
-   ```
+## GitHub Pages Configuration
 
-5. For local development:
-   ```bash
-   npm run dev   # Runs Next.js dev server
-   ```
+### Repository Settings
 
-## Key Changes
+1. Go to your repository Settings → Pages
+2. Under "Build and deployment":
+   - **Source**: Select "GitHub Actions"
+   - This enables automatic deployment from CI/CD workflows
+
+### Enable GitHub Pages
+
+1. Go to Settings → Pages
+2. Under "Source", select your deployment branch (e.g., `gh-pages`)
+3. Choose the root folder as the source
+4. Save
+
+### Custom Domain (Optional)
+
+1. Go to Settings → Pages
+2. Under "Custom domain", enter your domain
+3. Update your domain's DNS settings to point to GitHub Pages
+
+## GitHub Actions CI/CD
+
+Two workflows have been created for automated deployment:
+
+### Deploy finflow
+- Triggers on: push to `main` or `develop` branches, or pull requests
+- Builds the project and deploys to `gh-pages` branch
+- Accessible at: `https://username.github.io/Banking_app/` (for user pages)
+
+### Deploy sky
+- Triggers on: push to `main` or `develop` branches, or pull requests
+- Builds the project and deploys to `gh-pages` branch
+- Accessible at: `https://username.github.io/Banking_app/sky`
+
+## Key Changes from Netlify
 
 ### Removed
-- `netlify.toml` (Netlify configuration)
-- `@netlify/blobs` dependency
-- `netlify-cli` dependency
+- `netlify.toml` - Netlify configuration
+- `@netlify/blobs` - Netlify storage
+- `netlify-cli` - Netlify CLI
+- `wrangler.toml` - Cloudflare configuration
+- `_worker.js` - Cloudflare Functions
+- All Cloudflare-specific files
 
 ### Added
-- `wrangler.toml` (Cloudflare configuration)
-- `wrangler` dev dependency
-- `_worker.js` (Cloudflare Pages Functions entry point)
+- `.github/workflows/deploy-finflow.yml` - GitHub Actions workflow for finflow
+- `.github/workflows/deploy-sky.yml` - GitHub Actions workflow for sky
 
-### Configuration Differences
+### Build Output Changes
 
-#### Redirects & Rewrites
-**Netlify** (`netlify.toml`):
-```toml
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-```
+**Finflow**:
+- Build output: `dist/` (Vite default)
+- GitHub Pages root: `/` (project page root)
 
-**Cloudflare** (`_routes.json` in root of deployment):
-```json
-{
-  "version": 1,
-  "include": ["/*"],
-  "exclude": ["/api/*", "/_next/*", "/static/*"]
-}
-```
+**Sky**:
+- Build output: `out/` (Next.js static export)
+- GitHub Pages root: `/sky/` (within project page)
 
-#### Environment Variables
-Store secrets in Cloudflare dashboard:
-1. Go to Pages > Your Project > Settings > Environment variables
-2. Add variables for production and preview environments
+## Base Path Configuration
 
-### API Routes Migration
+For **sky** (Next.js), update `next.config.js` to set the base path:
 
-**Netlify Functions** → **Cloudflare Pages Functions**
-
-Old structure:
-```
-netlify/functions/api.js
-```
-
-New structure:
-```
-functions/api.js
-```
-
-Update function exports:
 ```javascript
-// Netlify
-exports.handler = async (event, context) => {
-  return { statusCode: 200, body: JSON.stringify(data) };
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+  basePath: '/Banking_app/sky',
+  images: {
+    unoptimized: true,
+  },
 };
 
-// Cloudflare Pages Functions
-export async function onRequest(context) {
-  return new Response(JSON.stringify(data));
-}
+module.exports = nextConfig;
 ```
 
-## Database & KV Store
-
-### Replacing @netlify/blobs
-If using Netlify Blobs for storage, migrate to Cloudflare KV:
+For **finflow** (Vite), update `vite.config.js`:
 
 ```javascript
-// In your worker/function
-export async function onRequest(context) {
-  const { BUCKET } = context.env; // KV namespace binding from wrangler.toml
-  
-  // Store data
-  await BUCKET.put(key, value);
-  
-  // Retrieve data
-  const data = await BUCKET.get(key);
-  
-  return new Response(data);
-}
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/Banking_app/',
+})
 ```
 
-Add to `wrangler.toml`:
-```toml
-[[kv_namespaces]]
-binding = "BUCKET"
-id = "your-kv-namespace-id"
+## Local Development
+
+### finflow
+```bash
+cd finflow
+npm install
+npm run dev
 ```
 
-## Custom Domain
-
-1. In Cloudflare dashboard, add your custom domain to your Pages project
-2. Update DNS records as shown in the dashboard
-3. Enable automatic HTTPS
-
-## GitHub Actions / CI/CD
-
-Update your workflow to use Wrangler for deployment:
-
-```yaml
-- name: Deploy to Cloudflare Pages
-  run: |
-    npm install -g wrangler
-    wrangler pages deploy dist
-  env:
-    CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+### sky
+```bash
+cd sky
+npm install
+npm run dev
 ```
+
+## Deployment Workflow
+
+Automatic deployment happens when:
+1. Code is pushed to `main` or `develop` branches
+2. A pull request is created
+
+The workflows will:
+1. Check out the code
+2. Install dependencies
+3. Build the project
+4. Deploy to `gh-pages` branch
+5. GitHub Pages automatically serves the content
+
+## Environment Variables
+
+GitHub Pages does not support server-side environment variables. Any sensitive information should be:
+- Handled client-side with appropriate security measures
+- Stored in GitHub Secrets (only used during build time)
+- Accessed via build-time environment variables
+
+For build-time secrets:
+1. Go to Settings → Secrets and variables → Actions
+2. Add your secrets
+3. Reference in workflow: `${{ secrets.SECRET_NAME }}`
+
+## Limitations & Considerations
+
+### Static Site Only
+- GitHub Pages only hosts static files
+- No server-side APIs or functions
+- Backend API calls must go to external services
+
+### No API Routes
+- Cannot use Next.js API routes (`/api/*`)
+- Cannot use serverless functions
+- Must use external API endpoints
+
+### Domain Limitations
+- Free custom domain: GitHub provides `username.github.io` for user pages
+- Organization pages: `organization.github.io`
+- Project pages: `username.github.io/repository-name/`
+
+### Performance
+- CDN-backed by Fastly
+- HTTPS enabled by default
+- Automatic redirects for trailing slashes
 
 ## Support & Documentation
 
-- [Cloudflare Pages Docs](https://developers.cloudflare.com/pages/)
-- [Wrangler CLI Docs](https://developers.cloudflare.com/workers/wrangler/)
-- [Cloudflare KV Documentation](https://developers.cloudflare.com/workers/runtime-apis/kv/)
+- [GitHub Pages Documentation](https://docs.github.com/en/pages)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Vite Documentation](https://vitejs.dev/)
+- [Next.js Static Export](https://nextjs.org/docs/advanced-features/static-html-export)
