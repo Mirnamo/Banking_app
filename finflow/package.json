@@ -4,14 +4,14 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "dev": "netlify dev",
-    "dev:web": "vite",
+    "dev": "vite",
+    "dev:pages": "wrangler pages dev dist",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test netlify/functions/lib/domain.test.mjs"
+    "deploy": "npm run build && wrangler pages deploy dist",
+    "test": "node --test functions/lib/domain.test.mjs"
   },
   "dependencies": {
-    "@netlify/blobs": "^9.1.2",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
-    "netlify-cli": "^20.1.1",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "wrangler": "^3.68.0"
   }
 }
