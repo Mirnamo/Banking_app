@@ -1,0 +1,20 @@
+  - name: Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: '18'
+      cache: 'npm'
+      cache-dependency-path: 'finflow/package-lock.json'
+
+  - name: Install dependencies
+    working-directory: finflow
+    run: npm ci
+
+  - name: Build
+    working-directory: finflow
+    run: npm run build
+
+  - name: Upload artifact
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    uses: actions/upload-pages-artifact@v2
+    with:
+      path: 'finflow/dist'
